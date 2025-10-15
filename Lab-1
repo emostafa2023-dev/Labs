@@ -1,0 +1,102 @@
+import os
+import time
+
+BLUE = '\u001b[44m'
+WHITE = '\u001b[47m'
+RED = '\u001b[41m'
+END = '\u001b[0m'
+
+def flag_france():
+    height = 9
+    width = 12
+    for _ in range(height):
+        print(f"{BLUE}{' ' * width}{WHITE}{' ' * width}{RED}{' ' * width}{END}")
+flag_france()
+
+
+BLACK = '\u001b[16m'
+END = '\u001b[0m'
+def pattern_a():
+    for row in range(10):
+        line = ""
+        for col in range(10):
+            if (row + col) % 2 == 0:
+                 line += f"{WHITE}  {END}"
+            else:
+                line += f"{BLACK}  {END}"
+        print(line)
+pattern_a()
+
+
+plot_list = [[0 for i in range(10)] for i in range(10)]
+result = [0 for i in range(10)]
+
+for i in range(10):
+    result[i] = i ** 2
+
+step = round(abs(result[0] - result[9]) / 9, 2)
+
+for i in range(10):
+    for j in range(10):
+        if j == 0:
+            plot_list[i][j] = step * (8-i) + step
+
+for i in range(9):
+    for j in range(10):
+        if abs(plot_list[i][0] - result[9 - j]) < step:
+            for k in range(9):
+                if 8 - k == j:
+                    plot_list[i][k+1] = 1
+
+for i in range(9):
+    line = ''
+    for j in range(10):
+        if j == 0:
+            line += '\t' + str(int(plot_list[i][j])) + '\t'
+        if plot_list[i][j] == 0:
+            line += '--'
+        if plot_list[i][j] == 1:
+            line += '!!'
+    print(line)
+print('\t0\t1 2 3 4 5 6 7 8 9')
+
+
+file = open('sequence.txt', 'r')
+list = []
+for number in file:
+    list.append(float(number))
+file.close()
+
+less_zero = sum(1 for number in list if number < 0)
+greater_zero = sum(1 for number in list if number > 0)
+total = len(list)
+less_p = less_zero / total * 100
+greater_p = greater_zero / total * 100
+
+print("=== 📊 Диаграмма процентного соотношения ===")
+print(f"Всего чисел: {total}")
+print(f"Меньше 0: {less_zero} ({less_p:.2f}%)")
+print(f"Больше 0: {greater_zero} ({greater_p:.2f}%)\n")
+
+bar_length = 50
+less_bar = int(bar_length * less_p / 100)
+greater_bar = int(bar_length * greater_p / 100)
+
+print(f"< 0 | {'#' * less_bar}{' ' * (bar_length - less_bar)} | {less_p:.1f}%")
+print(f"> 0 | {'#' * greater_bar}{' ' * (bar_length - greater_bar)} | {greater_p:.1f}%")
+
+
+frames = [
+    "(^_^)\n /|\\ \n / \\",
+    "(o_o)\n \\|/ \n / \\",
+    "(-_-)\n /|\\ \n \\ /"
+]
+
+def clear_console():
+    os.system("cls" if os.name == "nt" else "clear")
+
+for i in range(5):
+    for frame in frames:
+        clear_console()
+        print(frame)
+        time.sleep(0.5)
