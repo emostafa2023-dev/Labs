@@ -21,9 +21,9 @@ def pattern_a():
         line = ""
         for col in range(10):
             if (row + col) % 2 == 0:
-                 line += f"{WHITE}  {END}"
+                 line += f"{BLACK}  {END}"
             else:
-                line += f"{BLACK}  {END}"
+                line += f"{WHITE}  {END}"
         print(line)
 pattern_a()
 
