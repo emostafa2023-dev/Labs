@@ -28,8 +28,8 @@ def pattern_a():
 pattern_a()
 
 
-plot_list = [[0 for i in range(10)] for i in range(10)]
-result = [0 for i in range(10)]
+plot_list = [[0 for _ in range(10)] for _ in range(10)]
+result = [0 for _ in range(10)]
 
 for i in range(10):
     result[i] = i ** 2
