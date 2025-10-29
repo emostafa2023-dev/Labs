@@ -1,0 +1,72 @@
+import pandas as pd
+import xml.etree.ElementTree as ET
+
+
+df = pd.read_csv('books-en.csv', encoding='latin1', sep=';')
+print(df.columns)
+count_book = (df['Book-Title'].str.len() > 30).sum()
+print("Количество записей с длиной названия > 30 символов:", count_book)
+
+
+
+author = input()
+df['Price'] = pd.to_numeric(df['Price'].str.replace(',', '.'), errors='coerce')
+author_result = df[df['Book-Author'].str.contains(author, case=False, na=False)]
+if author_result.empty:
+    print("Книги данного автора не найдены.")
+else:
+    search_result = author_result[author_result['Price'] <= 150]
+    if search_result.empty:
+        print("Книги данного автора до 150 рублей не найдены.")
+    else:
+        print(search_result)
+
+
+
+def bib_generator(df,n):
+    count = 0
+    for _, row in df.iterrows():
+        author = row['Book-Author']
+        title = row['Book-Title']
+        year = row['Year-Of-Publication']
+        link = f"{author}. {title} - {year}"
+        yield link
+        count +=1
+        if count >= n:
+            break
+
+sample_df = df.sample(100)
+
+bib_list = list(bib_generator(sample_df, 20))
+
+with open("bibliography.txt", "w", encoding="utf-8") as f:
+    for i, ref in enumerate(bib_list, 1):
+        f.write(f"{i}. {ref}\n")
+
+
+
+tree = ET.parse('currency.xml')
+root = tree.getroot()
+
+currency_dict = {}
+
+for valute in root.findall('Valute'):
+    name = valute.find('Name').text
+    value_text = valute.find('Value').text
+    value = float(value_text.replace(',', '.'))
+    currency_dict[name] = value
+
+print(currency_dict)
+
+
+
+publishers = df['Publisher'].dropna().unique()
+
+for pub in publishers:
+    print(pub)
+
+
+
+df['Downloads'] = pd.to_numeric(df['Downloads'], errors='coerce')
+top_books = df.sort_values(by='Downloads', ascending=False).head(20)
+print(top_books[['Book-Title', 'Book-Author', 'Downloads']])
