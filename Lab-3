@@ -1,0 +1,119 @@
+import tkinter as tk
+from PIL import Image, ImageTk
+import random, string, itertools
+import pygame
+
+# === Размер окна ===
+width = 600
+height = 400
+
+# === Генерация одного блока (3 буквы + 2 цифры) ===
+def generate_block():
+    letters = random.choices(string.ascii_uppercase, k=3)
+    digits = random.choices(string.digits, k=2)
+    combined = letters + digits
+    random.shuffle(combined)
+    return ''.join(combined)
+
+# === Вспышка при генерации ключа ===
+def flash_entry():
+    colors = ["#FFFFFF", "#FF4444", "#8B0000", "#1C1C1C"]
+    def animate_flash(index=0):
+        if index < len(colors):
+            key_entry.config(bg=colors[index])
+            root.after(100, animate_flash, index + 1)
+    animate_flash()
+
+# === Генерация ключа ===
+def generate_key():
+    blocks = [generate_block() for _ in range(3)]
+    key = '-'.join(blocks)
+    key_entry.delete(0, tk.END)
+    key_entry.insert(0, key)
+    flash_entry()
+
+# === Анимация заголовка (пульсация) ===
+def animate_title():
+    colors = itertools.cycle(["#FFFFFF", "#DDDDDD", "#BBBBBB", "#DDDDDD"])
+    def pulse():
+        title_label.config(fg=next(colors))
+        title_label.after(300, pulse)
+    pulse()
+
+# === Анимация кнопки ===
+def animate_button():
+    colors = itertools.cycle(["#8B0000", "#A00000", "#B22222", "#A00000"])
+    def pulse():
+        generate_button.config(bg=next(colors))
+        generate_button.after(400, pulse)
+    pulse()
+
+# === Фоновая музыка (8-bit) ===
+def play_music():
+    pygame.mixer.init()
+    try:
+        pygame.mixer.music.load("8bit_theme.wav")
+        pygame.mixer.music.play(-1)
+    except Exception as e:
+        print("⚠️ Музыка не найдена:", e)
+
+# === Главное окно ===
+root = tk.Tk()
+root.title("Assassin's Creed II - Keygen")
+root.geometry(f"{width}x{height}")
+root.resizable(False, False)
+
+# === Фон ===
+try:
+    bg_image = Image.open("assassins_creed_bg.jpg")
+    bg_image = bg_image.resize((width, height))
+    bg_photo = ImageTk.PhotoImage(bg_image)
+
+    background_label = tk.Label(root, image=bg_photo)
+    background_label.place(x=0, y=0, relwidth=1, relheight=1)
+except:
+    root.configure(bg="#2c2c2c")
+
+bg_image = ImageTk.PhotoImage(bg_image)
+bg_label = tk.Label(root, image=bg_image)
+bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+# === Заголовок ===
+title_label = tk.Label(root, text="ASSASSIN'S CREED II",
+                       font=("Cinzel", 28, "bold"),
+                       fg="#FFFFFF", bg="#111")
+title_label.pack(pady=20)
+
+# === Поле для ключа ===
+key_entry = tk.Entry(root, font=("Consolas", 18, "bold"),
+                     justify='center', width=25,
+                     bg="#1C1C1C", fg="#FFFFFF",
+                     insertbackground="white",
+                     bd=2, relief="solid")
+key_entry.pack(pady=25)
+
+# === Кнопка ===
+generate_button = tk.Button(root, text="GENERATE KEY",
+                            font=("Cinzel", 16, "bold"),
+                            bg="#8B0000", fg="#FFFFFF",
+                            activebackground="#A30000",
+                            activeforeground="#FFFFFF",
+                            padx=25, pady=10,
+                            relief="flat", borderwidth=0,
+                            command=generate_key)
+generate_button.pack(pady=15)
+
+# === Подпись ===
+footer_label = tk.Label(root,
+                        text="Ubisoft Key Generator – For Fun Only",
+                        font=("Times New Roman", 10),
+                        fg="#CCCCCC", bg="#111")
+footer_label.pack(side="bottom", pady=10)
+
+# === Запуск музыки и анимаций ===
+play_music()
+animate_title()
+animate_button()
+
+# === Запуск окна ===
+root.mainloop()
