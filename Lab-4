@@ -1,0 +1,144 @@
+from itertools import combinations
+
+# --------------------------------------------
+# ДАННЫЕ ПРЕДМЕТОВ
+# --------------------------------------------
+ITEMS = {
+    "r": (3, 25),   # rifle
+    "p": (2, 15),   # pistol
+    "a": (2, 15),   # ammo
+    "m": (2, 20),   # medkit
+    "i": (1, 5),    # inhaler
+    "k": (1, 15),   # knife
+    "x": (3, 20),   # axe
+    "t": (1, 25),   # talisman
+    "f": (1, 15),   # flask
+    "d": (1, 10),   # antidot
+    "s": (2, 20),   # supplies
+    "c": (2, 20),   # crossbow
+}
+
+# --------------------------------------------
+# ПАРАМЕТРЫ ОСНОВНОГО ВАРИАНТА
+# --------------------------------------------
+WIDTH = 4
+HEIGHT = 2
+CAPACITY = WIDTH * HEIGHT
+START_SCORE = 15
+DISEASE = None
+
+# --------------------------------------------
+# ОБЯЗАТЕЛЬНЫЕ ПРЕДМЕТЫ
+# --------------------------------------------
+required_items = set()
+
+if DISEASE == "asthma":
+    required_items.add("i")
+elif DISEASE == "paranoia":
+    required_items.add("d")
+
+
+# --------------------------------------------
+# ПОДСЧЁТ ОЧКОВ
+# --------------------------------------------
+def total_all_items_score():
+    return sum(points for _, points in ITEMS.values())
+
+
+TOTAL_ALL_SCORE = total_all_items_score()
+
+
+def calc_score(selected_items):
+    selected_score = sum(ITEMS[item][1] for item in selected_items)
+    return START_SCORE + selected_score - (TOTAL_ALL_SCORE - selected_score)
+
+
+# --------------------------------------------
+# ПОИСК КОМБИНАЦИЙ
+# --------------------------------------------
+def find_solutions_for_capacity(capacity):
+    solutions = []
+    keys = list(ITEMS.keys())
+
+    for r in range(1, len(keys) + 1):
+        for comb in combinations(keys, r):
+
+            if not required_items.issubset(comb):
+                continue
+
+            size = sum(ITEMS[item][0] for item in comb)
+            if size > capacity:
+                continue
+
+            score = calc_score(comb)
+            if score > 0:
+                solutions.append((comb, score, size))
+
+    return solutions
+
+
+# --------------------------------------------
+# ОТРИСОВКА ИНВЕНТАРЯ
+# --------------------------------------------
+def print_inventory(comb, width, height):
+    capacity = width * height
+    cells = []
+
+    for item in comb:
+        size = ITEMS[item][0]
+        for _ in range(size):
+            cells.append(f"[{item}]")
+
+    while len(cells) < capacity:
+        cells.append("[ ]")
+
+    for y in range(height):
+        row = cells[y * width:(y + 1) * width]
+        print(",".join(row))
+    print()
+
+
+# --------------------------------------------
+# 1) РЕШЕНИЯ ДЛЯ 8 ЯЧЕЕК
+# --------------------------------------------
+print("\n=== РЕШЕНИЯ ДЛЯ ОСНОВНОГО ЗАДАНИЯ (8 ячеек) ===\n")
+
+solutions_8 = find_solutions_for_capacity(CAPACITY)
+
+print("Найдено решений:", len(solutions_8))
+
+for comb, score, size in solutions_8:
+    print(f"\nПредметы: {comb}")
+    print(f"Размер: {size}/{CAPACITY}")
+    print(f"Итоговые очки: {score}")
+    print("Инвентарь:")
+    print_inventory(comb, WIDTH, HEIGHT)
+    print("--------------------------------------")
+
+
+# --------------------------------------------
+# 2) ДОПОЛНИТЕЛЬНОЕ ЗАДАНИЕ — 7 ЯЧЕЕК
+# --------------------------------------------
+print("\n=== ДОПОЛНИТЕЛЬНОЕ ЗАДАНИЕ: инвентарь 7 ячеек ===\n")
+
+solutions_7 = find_solutions_for_capacity(7)
+
+if solutions_7:
+    print("Есть решения! Найдено:", len(solutions_7))
+    for comb, score, size in solutions_7:
+        print(f"\nПредметы: {comb}")
+        print(f"Размер: {size}/7")
+        print(f"Итоговые очки: {score}")
+
+        row = []
+        for item in comb:
+            for _ in range(ITEMS[item][0]):
+                row.append(f"[{item}]")
+
+        while len(row) < 7:
+            row.append("[ ]")
+
+        print(",".join(row))
+        print("--------------------------------------")
+else:
+    print("❌ РЕШЕНИЙ НЕТ — невозможно набрать положительный счёт при 7 ячейках.")
