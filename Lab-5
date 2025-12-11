@@ -1,0 +1,169 @@
+import re
+import csv
+
+
+# ============================================================
+# ЗАДАНИЕ 1 — task1-en.txt
+# ============================================================
+
+def task_1(filename):
+    """Поиск слов и чисел в английском тексте."""
+    print("\n=== ЗАДАНИЕ 1 ===\n")
+
+    with open(filename, encoding="utf-8") as file:
+        text = file.read()
+
+    words_3_5 = re.findall(r"\b[A-Za-z]{3,5}\b", text)
+    numbers_4p = re.findall(r"\b\d{4,}\b", text)
+
+    print("Слова длиной 3–5 букв:")
+    for word in words_3_5:
+        print(word)
+    print(f"Всего: {len(words_3_5)}")
+
+    print("\nЧисла с 4 и более цифрами:")
+    for number in numbers_4p:
+        print(number)
+    print(f"Всего: {len(numbers_4p)}")
+
+
+# ============================================================
+# ЗАДАНИЕ 2 — обработка task2.html
+# ============================================================
+
+def task_2(filename):
+    """Поиск уникальных HTML-тегов."""
+    print("\n=== ЗАДАНИЕ 2 ===")
+
+    with open(filename, encoding="utf-8") as file:
+        html = file.read()
+
+    tags = re.findall(r"</?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>", html)
+    unique_tags = sorted(set(tags))
+
+    print("Уникальные теги (имена):")
+    for tag in unique_tags:
+        print(tag)
+    print(f"Всего: {len(unique_tags)}")
+
+
+# ============================================================
+# ЗАДАНИЕ 3 — нормализация таблицы из task3.txt
+# ============================================================
+
+def task_3(filename):
+    """Разбор разрозненных данных в таблицу."""
+    print("\n=== ЗАДАНИЕ 3 ===")
+
+    with open(filename, encoding="utf-8") as file:
+        text = file.read()
+
+    id_pattern = re.compile(r"^\d+$")
+    email_pattern = re.compile(r"^[\w.%+-]+@[\w.-]+\.\w+$")
+    date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+    site_pattern = re.compile(r"^https?://\S+$")
+    name_pattern = re.compile(r"^[А-ЯЁA-Z][а-яёa-z]+$")
+
+    elements = text.split()
+
+    result = []
+    current = {
+        "ID": None,
+        "Surname": None,
+        "Email": None,
+        "Date": None,
+        "Site": None
+    }
+
+    for element in elements:
+        if id_pattern.match(element) and current["ID"] is None:
+            current["ID"] = element
+
+        elif name_pattern.match(element) and current["Surname"] is None:
+            current["Surname"] = element
+
+        elif email_pattern.match(element) and current["Email"] is None:
+            current["Email"] = element
+
+        elif date_pattern.match(element) and current["Date"] is None:
+            current["Date"] = element
+
+        elif site_pattern.match(element) and current["Site"] is None:
+            current["Site"] = element
+
+        if all(current.values()):
+            result.append([
+                current["ID"],
+                current["Surname"],
+                current["Email"],
+                current["Date"],
+                current["Site"]
+            ])
+
+            current = {
+                "ID": None,
+                "Surname": None,
+                "Email": None,
+                "Date": None,
+                "Site": None
+            }
+
+    with open("result.csv", "w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow(["ID", "Surname", "Email", "Date", "Site"])
+        writer.writerows(result)
+
+    print(f"Файл result.csv создан с {len(result)} записями.")
+
+
+# ============================================================
+# ДОПОЛНИТЕЛЬНОЕ ЗАДАНИЕ — task_add.txt
+# ============================================================
+
+def task_add(filename):
+    """Поиск дат, email и URL."""
+    print("\n=== ДОПОЛНИТЕЛЬНОЕ ЗАДАНИЕ ===")
+
+    with open(filename, encoding="utf-8") as file:
+        text = file.read()
+
+    date_pattern = re.compile(
+        r"\b(?:\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}|"
+        r"\d{4}[-/.]\d{1,2}[-/.]\d{1,2})\b"
+    )
+    email_pattern = re.compile(
+        r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}\b"
+    )
+    url_pattern = re.compile(
+        r"\bhttps?://[^\s)\"\']+"
+    )
+
+    dates = date_pattern.findall(text)
+    emails = email_pattern.findall(text)
+    sites = url_pattern.findall(text)
+
+    print("Найденные даты:")
+    for date_value in dates:
+        print(date_value)
+    print(f"Всего: {len(dates)}")
+
+    print("\nНайденные email:")
+    for email in emails:
+        print(email)
+    print(f"Всего: {len(emails)}")
+
+    print("\nНайденные сайты:")
+    for site in sites:
+        print(site)
+    print(f"Всего: {len(sites)}")
+
+
+# ============================================================
+# ЗАПУСК ВСЕХ ЗАДАНИЙ
+# ============================================================
+
+if __name__ == "__main__":
+    task_1("task1-en.txt")
+    task_2("task2.html")
+    task_3("task3.txt")
+    task_add("task_add.txt")
