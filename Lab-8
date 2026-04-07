@@ -1,0 +1,42 @@
+import cv2
+
+img = cv2.imread("variant-1.jpg")
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+cv2.imshow("Gray", gray)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+cap = cv2.VideoCapture(0)
+template = cv2.imread("ref-point.jpg", 0)
+fly = cv2.imread("fly64.png", -1)
+
+w, h = template.shape[::-1]
+fh, fw = fly.shape[:2]
+
+while True:
+    ret, frame = cap.read()
+    if not ret: break
+
+    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    res = cv2.matchTemplate(gray_frame, template, cv2.TM_CCOEFF_NORMED)
+    _, max_val, _, max_loc = cv2.minMaxLoc(res)
+
+    center_x = max_loc[0] + w // 2
+    center_y = max_loc[1] + h // 2
+    
+    x = center_x - fw // 2
+    y = center_y - fh // 2
+
+    if y >= 0 and y + fh <= frame.shape[0] and x >= 0 and x + fw <= frame.shape[1]:
+        mask = fly[:, :, 3] / 255.0
+        for c in range(3):
+            frame[y:y+fh, x:x+fw, c] = (mask * fly[:, :, c] + (1 - mask) * frame[y:y+fh, x:x+fw, c])
+
+    cv2.rectangle(frame, max_loc, (max_loc[0] + w, max_loc[1] + h), (0, 255, 0), 2)
+    cv2.putText(frame, f"X: {center_x}, Y: {center_y}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+    cv2.imshow("Tracking", frame)
+    if cv2.waitKey(1) & 0xFF == 27: break
+
+cap.release()
+cv2.destroyAllWindows()
