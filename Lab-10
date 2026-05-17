@@ -1,0 +1,90 @@
+import pyttsx3
+import requests
+from PIL import Image
+from io import BytesIO
+import webbrowser
+import os
+import json
+from vosk import Model, KaldiRecognizer
+import pyaudio
+
+def speak(text):
+    print(f"Ассистент: {text}")
+    engine = pyttsx3.init()
+    
+    voices = engine.getProperty('voices')
+    for voice in voices:
+        if "Russian" in voice.name or "RU" in voice.id:
+            engine.setProperty('voice', voice.id)
+            break
+            
+    engine.say(text)
+    engine.runAndWait()
+    engine.stop()
+
+current_dog_url = ""
+
+def get_dog_data():
+    global current_dog_url
+    try:
+        response = requests.get("https://dog.ceo/api/breeds/image/random")
+        data = response.json()
+        if data['status'] == 'success':
+            current_dog_url = data['message']
+            return current_dog_url
+    except Exception as e:
+        speak("Ошибка при запросе к серверу")
+    return None
+
+def execute_command(command):
+    global current_dog_url
+    
+    if "следующая" in command or "давай" in command:
+        get_dog_data()
+        speak("Картинка обновлена")
+
+    elif "показать" in command:
+        if current_dog_url:
+            webbrowser.open(current_dog_url)
+        else:
+            speak("Сначала нужно получить картинку")
+
+    elif "пород" in command:
+        breed = current_dog_url.split('/')[-2].replace('-', ' ')
+        text_to_speak = f"Порода этой собаки — {breed}"
+        speak(text_to_speak)
+
+    elif "разрешение" in command:
+        res = requests.get(current_dog_url)
+        img = Image.open(BytesIO(res.content))
+        w, h = img.size
+        speak(f"Разрешение картинки {w} на {h} пикселей")
+        
+    elif "сохранить" in command:
+        res = requests.get(current_dog_url)
+        with open("dog_photo.jpg", "wb") as f:
+            f.write(res.content)
+        speak("Фотография сохранена как dog_photo.jpg")
+    else:
+        speak("Команда не распознана, попробуйте еще раз")
+
+model = Model("model")
+rec = KaldiRecognizer(model, 16000)
+p = pyaudio.PyAudio()
+stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
+stream.start_stream()
+
+speak("Ассистент запущен. Я слушаю команды.")
+get_dog_data()
+
+while True:
+    data = stream.read(4000, exception_on_overflow=False)
+    if rec.AcceptWaveform(data):
+        result = json.loads(rec.Result())
+        text = result['text']
+        if text:
+            print(f"Вы: {text}")
+            stream.stop_stream()
+            execute_command(text)
+            rec.Reset()
+            stream.start_stream()
